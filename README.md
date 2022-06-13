@@ -1,5 +1,9 @@
 # cdk_simple_cloudfront_canary_probe
 
+### 0) Requirements
+* Configure a path pattern behaviour of your CloudFront Distribution with a server timing response header policy (please see here: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-response-headers-policies.html#server-timing-header)
+
+
 ### 1) NodeJS Install
 Ref:  https://docs.aws.amazon.com/cdk/v2/guide/work-with.html#work-with-prerequisites
 
@@ -55,9 +59,9 @@ Edit ```simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_clo
     # CIDR for SSH INGRESS to the instance where application will be executing
     SSH_INGRESS_CIDR="<YOUR_CIDR_FOR_SSH>"
     
-### 
+### 7) Deploy the project
 
     export CDK_DEFAULT_ACCOUNT=<YOUR AWS ACCOUNT NUMBER>
     export CDK_DEFAULT_REGION=<YOUR REGION>
-    aws configure
+    aws configure 
     cdk synth; cdk deploy
