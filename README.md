@@ -1,6 +1,33 @@
 # cdk_simple_cloudfront_canary_probe
 
-### 0) Requirements
+## Introduction
+
+Amazon CloudFront is a web service to distribute content with low latency and high data transfer rates by serving requests using a network of edge locations around the world. Customers leveraging Amazon CloudFront have high expectation about its performance and are highly sensible to systemic or sporadic latency increases. The factors contributing for increased latency while serving web content via CloudFront vary but customer often lack the capability to correctly identify the different sources of latency, leading to an extended degraded user experience. 
+
+This CDK stack deploys an EC2 instance on a VPC of your choice, executing a latency probe every minute. The latency probe is developed in Python3, and leverages PyCurl to perform 2 requests against a CloudFront Distribution distribution. The URIs of the requests is customizable but they should be served through path pattern behaviours configured with Server Timing Response Policy. One of the requests should always result in a MISS event so that the probe is able to assess upstream latency experience as experienced by CloudFront towards the origin.
+
+## Metrics
+
+The client captures the following data:
+
+From PyCurl metrics:
+
+•	The time PyCurl took to resolve the CloudFront distribution domain name 
+•	The time PyCurl took to connect to the edge location 
+•	The pretransfer time e.g. the time until the end of SSL/TLC negotiation
+•	The starttransfer time, e.g. the until client receive the first byte 
+•	The total elapsed time 
+
+From CloudFront Server timing response headers:
+
+•	The edge location which served the request
+•	The type of event - Miss/Hit
+•	The time CloudFront took to resolve the domain name of the origin (for Miss events)
+•	The time CloudFront took to connect to the origin 
+•	The time CloudFront expected until the first byte of the response is received from the origin 
+
+
+##Requirements
 * Configure a path pattern behaviour of your CloudFront Distribution with a server timing response header policy (please see here: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-response-headers-policies.html#server-timing-header)
 
 
