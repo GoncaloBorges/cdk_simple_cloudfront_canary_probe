@@ -4,34 +4,36 @@
 
 Amazon CloudFront is a web service to distribute content with low latency and high data transfer rates by serving requests using a network of edge locations around the world. Customers leveraging Amazon CloudFront have high expectation about its performance and are highly sensible to systemic or sporadic latency increases. The factors contributing for increased latency while serving web content via CloudFront vary but customer often lack the capability to correctly identify the different sources of latency, leading to an extended degraded user experience. 
 
-This CDK stack deploys an EC2 instance on a VPC of your choice, executing a latency probe every minute. The latency probe is developed in Python3, and leverages PyCurl to perform 2 requests against a CloudFront Distribution distribution. The URIs of the requests is customizable but they should be served through path pattern behaviours configured with Server Timing Response Policy. One of the requests should always result in a MISS event so that the probe is able to assess upstream latency experience as experienced by CloudFront towards the origin.
+This CDK stack deploys an EC2 instance on a VPC of your choice, executing a latency probe every minute and uploading per PoP metrics into Cloudwatch in ```us-east-1``` region. 
+
+The latency probe is developed in Python3, and leverages PyCurl to perform 2 requests against a CloudFront Distribution distribution. The URIs of the requests is customizable but they should be served through path pattern behaviours configured with Server Timing Response Policy. One of the requests should always result in a MISS event so that the probe is able to assess upstream latency experience as experienced by CloudFront towards the origin.
 
 ## Metrics
 
-The client captures the following data:
+On successfull deployment, per PoP CW metrics are available in ```us-east-1``` region under a custom metric named ```Simple CloudFront Canary Probe```. The latency probe captures the following data per PoP:
 
-From PyCurl metrics:
+#### From PyCurl metrics:
 
-•	The time PyCurl took to resolve the CloudFront distribution domain name 
-•	The time PyCurl took to connect to the edge location 
-•	The pretransfer time e.g. the time until the end of SSL/TLC negotiation
-•	The starttransfer time, e.g. the until client receive the first byte 
-•	The total elapsed time 
+1. ```pycurl-dns```: The time PyCurl client took to resolve the CloudFront distribution domain name 
+1. ```pycurl-connect```: The time PyCurl client took to connect to the edge location 
+1. ```pycurl-pretranfer```: The pretransfer time e.g. the time until the end of SSL/TLC negotiation as experienced by PyCurl client
+1. ```(miss/hit)-pycurl-fbl```: The time until PyCurl client receives the first byte of the response
+1. ```(miss/hit)-pycurl-totaltime```: The total elapsed time as experienced by PyCurl client to be served
 
-From CloudFront Server timing response headers:
+#### From CloudFront Server timing response headers:
 
-•	The edge location which served the request
-•	The type of event - Miss/Hit
-•	The time CloudFront took to resolve the domain name of the origin (for Miss events)
-•	The time CloudFront took to connect to the origin 
-•	The time CloudFront expected until the first byte of the response is received from the origin 
+1.	```miss-cdn-upstream-dns```: The time CloudFront took to resolve the domain name of the origin (for Miss events)
+1.	```miss-cdn-upstream-connect```: The time CloudFront took to connect to the origin 
+1.	```miss-cdn-upstream-fbl```: The time CloudFront expected until the first byte of the response is received from the origin 
 
 
-##Requirements
+## Installation
+
+#### Requirements
 * Configure a path pattern behaviour of your CloudFront Distribution with a server timing response header policy (please see here: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-response-headers-policies.html#server-timing-header)
 
 
-### 1) NodeJS Install
+#### NodeJS Install
 Ref:  https://docs.aws.amazon.com/cdk/v2/guide/work-with.html#work-with-prerequisites
 
     wget https://nodejs.org/dist/v16.15.0/node-v16.15.0-linux-x64.tar.xz
@@ -39,7 +41,7 @@ Ref:  https://docs.aws.amazon.com/cdk/v2/guide/work-with.html#work-with-prerequi
     tar xvf node-v16.15.0-linux-x64.tar 
     export PATH=${PWD}/node-v16.15.0-linux-x64/bin:$PATH
 
-### 2) Install CDKv2 framework
+#### Install CDKv2 framework
 Ref: https://docs.aws.amazon.com/cdk/v2/guide/work-with-cdk-python.html
 
     python3 -m ensurepip --upgrade
@@ -47,7 +49,7 @@ Ref: https://docs.aws.amazon.com/cdk/v2/guide/work-with-cdk-python.html
     python3 -m pip install --upgrade virtualenv
     npm install -g aws-cdk
     
-### 3) Create the default 'simple_cloudfront_canary_probe' project
+#### Create the default 'simple_cloudfront_canary_probe' project
 
     mkdir simple_cloudfront_canary_probe/; cd simple_cloudfront_canary_probe/
     cdk init app --language python
@@ -55,14 +57,14 @@ Ref: https://docs.aws.amazon.com/cdk/v2/guide/work-with-cdk-python.html
     python -m pip install -r requirements.txt
     cd ..
 
-### 4) Download custom project files
+#### Download custom project files
 
     git clone https://github.com/GoncaloBorges/cdk_simple_cloudfront_canary_probe.git
     cp cdk_simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/app.py simple_cloudfront_canary_probe/
     cp cdk_simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_cloudfront_canary_probe_stack.py simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/
     cp -r cdk_simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/user_data simple_cloudfront_canary_probe/
 
-### 5) Customize the project user script
+#### Customize the project user script
 
 Edit ```simple_cloudfront_canary_probe/user_data/user_data.sh``` and customize the ```DISTRO, URL_HIT and URL_MISS``` variables 
  
@@ -75,7 +77,7 @@ Edit ```simple_cloudfront_canary_probe/user_data/user_data.sh``` and customize t
    URL_MISS='<REPLACE BY YOUR MISS URI> (a request to this URI should always generate a MISS)'
    ```
 
-### 6) Customize the project stack script
+#### Customize the project stack script
 
 Edit ```simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_cloudfront_canary_probe_stack.py``` and custome the ```vpcID, key_name and SSH_INGRESS_CIDR``` variables
 
@@ -86,7 +88,7 @@ Edit ```simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_clo
     # CIDR for SSH INGRESS to the instance where application will be executing
     SSH_INGRESS_CIDR="<YOUR_CIDR_FOR_SSH>"
     
-### 7) Deploy the project
+#### Deploy the project
 
     export CDK_DEFAULT_ACCOUNT=<YOUR AWS ACCOUNT NUMBER>
     export CDK_DEFAULT_REGION=<YOUR REGION>
