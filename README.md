@@ -31,7 +31,7 @@ On successfull deployment, per PoP CW metrics are available in ```us-east-1``` r
 
 ### Requirements
 
-* Create a custom response policy with Server-Timing header enabled
+* Create a custom response policy with Server-Timing header enabled with a 100% sampling rate.
 
 * Attach the custom response policy with Server-Timing header enabled to a specific behaviour of your CloudFront Distribution.
 
