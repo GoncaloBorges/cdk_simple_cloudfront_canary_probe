@@ -4,7 +4,7 @@
 
 Amazon CloudFront is a web service to distribute content with low latency and high data transfer rates by serving requests using a network of edge locations around the world. Customers leveraging Amazon CloudFront have high expectation about its performance and are highly sensible to systemic or sporadic latency increases. The factors contributing for increased latency while serving web content via CloudFront vary but customer often lack the capability to correctly identify the different sources of latency, leading to an extended degraded user experience. 
 
-This CDK stack deploys an EC2 instance on a VPC of your choice, executing a latency probe every minute and uploading per PoP metrics into Cloudwatch in ```us-east-1``` region. 
+These instructions will deploy a CDK stack that, on it own, deploys an EC2 instance on a VPC of your choice, executing a latency probe every minute and uploading per PoP metrics into Cloudwatch in ```us-east-1``` region. 
 
 The latency probe is developed in Python3, and leverages PyCurl to perform 2 requests against a CloudFront Distribution distribution. The URIs of the requests is customizable but they should be served through path pattern behaviours configured with Server Timing Response Policy. One of the requests should always result in a MISS event so that the probe is able to assess upstream latency experience as experienced by CloudFront towards the origin.
 
@@ -29,6 +29,8 @@ On successfull deployment, per PoP CW metrics are available in ```us-east-1``` r
 
 ## Installation
 
+The deployment of the CDK stack can be triggered from any Linux instance as long as it provides python3, git and has AWS CLI instance. For convinience you may want to deploy it on an AMZ Linux 2 EC2 instance where all of the above utilities are installed or available by default. However, it is not mandatory to deploy it on an EC2 instance
+
 ### Requirements
 
 * Create a custom response policy with Server-Timing header enabled with a 100% sampling rate.
@@ -37,7 +39,7 @@ On successfull deployment, per PoP CW metrics are available in ```us-east-1``` r
 
 * Select two requests / uris to probe the distribution performance matching the above behaviour:
 1. one which will likely result on a `HIT` event;
-1. another which will always result in a `MISS` event. A `MISS` event can be configured by adding a `Cache-Control: max-age=0' response header to response from your origin server. 
+1. another which will always result in a `MISS` event. A `MISS` event can be configured by adding a `Cache-Control: max-age=0` response header to response from your origin server. 
 
 ### Install NodeJS
 ###### Ref:  https://docs.aws.amazon.com/cdk/v2/guide/work-with.html#work-with-prerequisites
@@ -85,7 +87,7 @@ Edit ```simple_cloudfront_canary_probe/user_data/user_data.sh``` and customize t
 
 ### Customize the project stack script for your use case
 
-Edit ```simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_cloudfront_canary_probe_stack.py``` and custome the ```vpcID, key_name and SSH_INGRESS_CIDR``` variables
+Edit ```simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_cloudfront_canary_probe_stack.py``` and customize the ```vpcID, key_name and SSH_INGRESS_CIDR``` variables
 
     # vpc-123456
     vpcID="<YOUR VPC>"
