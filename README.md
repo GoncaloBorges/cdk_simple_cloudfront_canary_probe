@@ -29,27 +29,33 @@ On successfull deployment, per PoP CW metrics are available in ```us-east-1``` r
 
 ## Installation
 
-#### Requirements
-* Configure a path pattern behaviour of your CloudFront Distribution with a server timing response header policy (please see here: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-response-headers-policies.html#server-timing-header)
+### Requirements
 
+* Create a custom response policy with Server-Timing header enabled
 
-#### NodeJS Install
-Ref:  https://docs.aws.amazon.com/cdk/v2/guide/work-with.html#work-with-prerequisites
+* Attach the custom response policy with Server-Timing header enabled to a specific behaviour of your CloudFront Distribution.
+
+* Select two requests / uris to probe the distribution performance matching the above behaviour:
+1. one which will likely result on a `HIT` event;
+1. another which will always result in a `MISS` event. A `MISS` event can be configured by adding a `Cache-Control: max-age=0' response header to response from your origin server. 
+
+### Install NodeJS
+###### Ref:  https://docs.aws.amazon.com/cdk/v2/guide/work-with.html#work-with-prerequisites
 
     wget https://nodejs.org/dist/v16.15.0/node-v16.15.0-linux-x64.tar.xz
     xz -d -v node-v16.15.0-linux-x64.tar.xz
     tar xvf node-v16.15.0-linux-x64.tar 
     export PATH=${PWD}/node-v16.15.0-linux-x64/bin:$PATH
 
-#### Install CDKv2 framework
-Ref: https://docs.aws.amazon.com/cdk/v2/guide/work-with-cdk-python.html
+### Install CDKv2 framework (`python3` must be already available - a AMZ Linux 2 EC2 instance provides it by default)
+###### Ref: https://docs.aws.amazon.com/cdk/v2/guide/work-with-cdk-python.html
 
     python3 -m ensurepip --upgrade
     python3 -m pip install --upgrade pip
     python3 -m pip install --upgrade virtualenv
     npm install -g aws-cdk
     
-#### Create the default 'simple_cloudfront_canary_probe' project
+### Create the default 'simple_cloudfront_canary_probe' project
 
     mkdir simple_cloudfront_canary_probe/; cd simple_cloudfront_canary_probe/
     cdk init app --language python
@@ -57,14 +63,14 @@ Ref: https://docs.aws.amazon.com/cdk/v2/guide/work-with-cdk-python.html
     python -m pip install -r requirements.txt
     cd ..
 
-#### Download custom project files
+### Download custom 'simple_cloudfront_canary_probe' project files (`git` must be available)
 
     git clone https://github.com/GoncaloBorges/cdk_simple_cloudfront_canary_probe.git
     cp cdk_simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/app.py simple_cloudfront_canary_probe/
     cp cdk_simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_cloudfront_canary_probe_stack.py simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/
     cp -r cdk_simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/user_data simple_cloudfront_canary_probe/
 
-#### Customize the project user script
+### Customize the project user script for your use case
 
 Edit ```simple_cloudfront_canary_probe/user_data/user_data.sh``` and customize the ```DISTRO, URL_HIT and URL_MISS``` variables 
  
@@ -77,7 +83,7 @@ Edit ```simple_cloudfront_canary_probe/user_data/user_data.sh``` and customize t
    URL_MISS='<REPLACE BY YOUR MISS URI> (a request to this URI should always generate a MISS)'
    ```
 
-#### Customize the project stack script
+### Customize the project stack script for your use case
 
 Edit ```simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_cloudfront_canary_probe_stack.py``` and custome the ```vpcID, key_name and SSH_INGRESS_CIDR``` variables
 
@@ -88,9 +94,12 @@ Edit ```simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_clo
     # CIDR for SSH INGRESS to the instance where application will be executing
     SSH_INGRESS_CIDR="<YOUR_CIDR_FOR_SSH>"
     
-#### Deploy the project
+### Deploy the project
 
     export CDK_DEFAULT_ACCOUNT=<YOUR AWS ACCOUNT NUMBER>
     export CDK_DEFAULT_REGION=<YOUR REGION>
     aws configure 
-    cdk synth; cdk deploy
+    cd simple_cloudfront_canary_probe
+    cdk synth
+    cdk bootstrap (only on first deployment)
+    cdk deploy
