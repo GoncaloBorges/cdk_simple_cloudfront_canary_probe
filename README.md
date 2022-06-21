@@ -4,13 +4,13 @@
 
 Amazon CloudFront is a web service to distribute content with low latency and high data transfer rates by serving requests using a network of edge locations around the world. Customers leveraging Amazon CloudFront have high expectation about its performance and are highly sensible to systemic or sporadic latency increases. The factors contributing for increased latency while serving web content via CloudFront vary but customer often lack the capability to correctly identify the different sources of latency, leading to an extended degraded user experience. 
 
-These instructions will deploy a CDK stack that, on it own, deploys an EC2 instance on a VPC of your choice, executing a latency probe every minute and uploading per PoP metrics into Cloudwatch in ```us-east-1``` region. 
+These instructions will deploy a CDK stack that, on it own, deploys an EC2 instance on a VPC of your choice, executing a latency probe every minute, and uploading per PoP metrics into CloudWatch (CW) in ```us-east-1``` region. 
 
-The latency probe is developed in Python3, and leverages PyCurl to perform 2 requests against a CloudFront Distribution distribution. The URIs of the requests is customizable but they should be served through path pattern behaviours configured with Server Timing Response Policy. One of the requests should always result in a MISS event so that the probe is able to assess upstream latency experience as experienced by CloudFront towards the origin.
+The latency probe is developed in Python3, and leverages PyCurl to perform 2 requests against a CloudFront Distribution distribution. The URIs of the requests are customizable but they should be served through path pattern behaviours configured with Server Timing Response Policies. One of the requests should always result in a MISS event so that the probe is able to assess upstream latency as experienced by CloudFront towards the origin.
 
 ## Metrics
 
-On successfull deployment, per PoP CW metrics are available in ```us-east-1``` region under a custom metric named ```Simple CloudFront Canary Probe```. The latency probe captures the following data per PoP:
+On successfull deployment, per PoP CW metrics are available in ```us-east-1``` region under a custom namespace named ```Simple CloudFront Canary Probe```. The latency probe captures the following data per PoP:
 
 #### From PyCurl metrics:
 
@@ -27,19 +27,21 @@ On successfull deployment, per PoP CW metrics are available in ```us-east-1``` r
 1.	```miss-cdn-upstream-fbl```: The time CloudFront expected until the first byte of the response is received from the origin 
 
 
-## Installation
+## CloudFront Distribution Requirements
 
-The deployment of the CDK stack can be triggered from any Linux instance as long as it provides python3, git and has AWS CLI instance. For convinience you may want to deploy it on an AMZ Linux 2 EC2 instance where all of the above utilities are installed or available by default. However, it is not mandatory to deploy it on an EC2 instance
+* Create a custom response policy with Server-Timing headers enabled using a 100% sampling rate.
 
-### Requirements
-
-* Create a custom response policy with Server-Timing header enabled with a 100% sampling rate.
-
-* Attach the custom response policy with Server-Timing header enabled to a specific behaviour of your CloudFront Distribution.
+* Attach the custom response policy with Server-Timing header enabled to a behaviour of your CloudFront Distribution.
 
 * Select two requests / uris to probe the distribution performance matching the above behaviour:
 1. one which will likely result on a `HIT` event;
 1. another which will always result in a `MISS` event. A `MISS` event can be configured by adding a `Cache-Control: max-age=0` response header to response from your origin server. 
+
+
+## Installation
+
+The deployment of the CDK stack can be triggered from any Linux instance as long as it provides python3, git and has AWS CLI installed. For convinience you may want to deploy it on an AMZ Linux 2 EC2 instance where all of the above utilities are available by default. However, it is not mandatory to do so.
+
 
 ### Install NodeJS
 ###### Ref:  https://docs.aws.amazon.com/cdk/v2/guide/work-with.html#work-with-prerequisites
