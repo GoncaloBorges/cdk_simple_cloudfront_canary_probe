@@ -87,7 +87,7 @@ Edit ```simple_cloudfront_canary_probe/user_data/user_data.sh``` and customize t
    URL_MISS='<REPLACE BY YOUR MISS URI> (a request to this URI should always generate a MISS)'
    ```
 
-### Customize the project stack script for your use case
+### Customize the project stack scripts for your use case
 
 Edit ```simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_cloudfront_canary_probe_stack.py``` and customize the ```vpcID, key_name and SSH_INGRESS_CIDR``` variables
 
@@ -98,12 +98,16 @@ Edit ```simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_clo
     # CIDR for SSH INGRESS to the instance where application will be executing
     SSH_INGRESS_CIDR="<YOUR_CIDR_FOR_SSH>"
     
-### Deploy the project
+### Deploy the project stack
 
     export CDK_DEFAULT_ACCOUNT=<YOUR AWS ACCOUNT NUMBER>
     export CDK_DEFAULT_REGION=<YOUR REGION>
-    aws configure 
+    aws configure (the user used here needs to have the appropriate permissions to run the CDK stack and deploy the resources there defined)
     cd simple_cloudfront_canary_probe
     cdk synth
     cdk bootstrap (only on first deployment)
     cdk deploy
+    
+### Destroy the project
+
+    cdk destroy
