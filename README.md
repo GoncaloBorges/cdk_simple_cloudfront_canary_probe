@@ -38,8 +38,7 @@ On successfull deployment, per PoP CW metrics are available in ```us-east-1``` r
 1. another which will always result in a `MISS` event. A `MISS` event can be configured by adding a `Cache-Control: max-age=0` response header to response from your origin server. 
 
 
-## Installation
-
+## Project Deployment
 The deployment of the CDK stack can be triggered from any Linux instance as long as it provides python3, git and has AWS CLI installed. For convinience you may want to deploy it on an AMZ Linux 2 EC2 instance where all of the above utilities are available by default. However, it is not mandatory to do so.
 
 
@@ -108,5 +107,7 @@ Edit ```simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_clo
     cdk bootstrap (only on first deployment)
     cdk deploy
     
-## Cleanup 
+## Project Cleanup
+Triggers a full clean up of the CDK stack that deletes all created resources
+
     cdk destroy
