@@ -108,6 +108,5 @@ Edit ```simple_cloudfront_canary_probe/simple_cloudfront_canary_probe/simple_clo
     cdk bootstrap (only on first deployment)
     cdk deploy
     
-### Destroy the project
-
+## Cleanup 
     cdk destroy
